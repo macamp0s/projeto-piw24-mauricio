@@ -19,6 +19,7 @@ Maurício Campos de Sousa - 470385 - Design Digital.
 • Aluno
 • Professor
 • Disciplina
+• Eventos
 
 ## :triangular_flag_on_post:	 Principais funcionalidades da aplicação
 
