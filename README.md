@@ -9,7 +9,6 @@ Maurício Campos de Sousa - 470385 - Design Digital.
 
 ## :people_holding_hands: Papéis ou tipos de usuário da aplicação
 
-Informe aqui os tipos de usuário que irão interagir com a aplicação. Ex: administrador, locador, locatario, usuário não logado.
 
 • Alunos
 • Professores
