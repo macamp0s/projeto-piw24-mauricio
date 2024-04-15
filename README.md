@@ -1,24 +1,44 @@
-# :checkered_flag: NOME DO PROJETO
+# :checkered_flag: SCOLA - Sistema Centralizado de Organização e Logística Acadêmica
 
-Breve descrição do que o seu projeto faz.
+Um sistema online de administração de atividades escolares. 
+Abrange desde matrículas, notas e até calendário de eventos/dias letivos.
 
 ## :technologist: Membros da equipe
 
-Matrícula, nome e curso dos participantes.
+Maurício Campos de Sousa - 470385 - Design Digital.
 
 ## :people_holding_hands: Papéis ou tipos de usuário da aplicação
 
 Informe aqui os tipos de usuário que irão interagir com a aplicação. Ex: administrador, locador, locatario, usuário não logado.
 
-> Tenha em mente que obrigatoriamente a aplicação deve possuir funcionalidades acessíveis a todos os tipos de usuário e outra funcionalidades restritas a certos tipos de usuários.
+• Alunos
+• Professores
+• Administradores
 
 ## :spiral_calendar: Entidades ou tabelas do sistema
 
-Liste as principais entidades do sistema.
+• Aluno
+• Professor
+• Disciplina
 
 ## :triangular_flag_on_post:	 Principais funcionalidades da aplicação
 
-Descreve ou liste brevemente as principais funcionalidades da aplicação que será desenvolvida. Destaque a funcionalidades que serão acessévies a todos os usuários e aquelas restriras a usuários logados.
+Matrícula em cursos - 
+
+    Aluno poderá visualizar os cursos disponíveis e se matricular neles.
+    Usuário Adm pode abrir e fechar inscrições de matrículas.
+
+
+Visualização de notas -
+
+    Aluno pode acessar as suas notas em diferentes disciplinas.
+    Professor pode lançar e atualizar as notas dos alunos matrículados em suas materias.
+
+
+Calendário escolar - 
+
+    Todos os usuários tem acesso a um calendário escolar que exibe eventos importantes como feriados e datas de matrícula.
+    Adm pode gerenciar o calendário, atualizando datas. 
 
 
 ----
