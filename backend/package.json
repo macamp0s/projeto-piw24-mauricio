@@ -5,6 +5,9 @@
   "author": "Maurício",
   "license": "MIT",
   "private": false,
+  "scripts": {
+  "start": "yarn ts-node-dev ./src/index.ts"
+      },
   "dependencies": {
     "express": "^4.19.2"
   },
