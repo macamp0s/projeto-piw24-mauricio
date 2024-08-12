@@ -3,10 +3,5 @@
     "id": 1,
     "name": "Testando update user",
     "email": "Testandoupdateemail@example.com"
-  },
-  {
-    "id": 2,
-    "name": "Test2",
-    "email": "testando2@example.com"
   }
 ]
