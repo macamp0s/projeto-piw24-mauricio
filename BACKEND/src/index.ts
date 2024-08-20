@@ -71,6 +71,27 @@ app.get('/users/:id', (req, res) => {
         })
 })
 
+app.delete('/users/:id', (req, res) => {
+    const id = req.params.id
+    const userIndex = users.findIndex(u => u.id === parseInt(id))
+
+    if (userIndex == -1) {
+        return res.status(404).json({
+            error: {
+                status: 404,
+                name: 'Not Found',
+                message: 'User not found'
+            }
+        })
+    }
+    
+    const deletedUser=users.splice(userIndex, 1)
+    res.status(200).json({
+        data:deletedUser
+    })
+
+})
+
 
 app.listen(port, () => {
     console.log(`'Servidor escutando a porta ${port} em http://localhost:${port}`)
