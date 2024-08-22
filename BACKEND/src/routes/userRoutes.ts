@@ -1,15 +1,12 @@
 import { Router } from "express";
 import { AppDataSource } from "../DataSource";
-import{User} from '../entity/User'
+import { User } from '../entity/User'
 import { Role } from "../entity/Role";
 
 
 
 const router = Router()
 
-
-
-const users: User[] = []
 
 router.post('/', async (req, res) => {
 
@@ -26,22 +23,22 @@ router.post('/', async (req, res) => {
         })
     }
 
-    const userRepository=AppDataSource.getRepository(User)
+    const userRepository = AppDataSource.getRepository(User)
     const roleRepository = AppDataSource.getRepository(Role)
 
-    let roleInDB = await roleRepository.findOne({where: {name:role}})
+    let roleInDB = await roleRepository.findOne({ where: { name: role } })
 
     if (!roleInDB) {
-        roleInDB = roleRepository.create({name:role})
+        roleInDB = roleRepository.create({ name: role })
         await roleRepository.save(roleInDB)
     }
 
-    const newUser: User = userRepository.create( {
+    const newUser: User = userRepository.create({
         name,
         username,
         email,
         password,
-        role:roleInDB
+        role: roleInDB
     })
 
     await userRepository.save(newUser)
@@ -52,7 +49,7 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     const userRepository = AppDataSource.getRepository(User)
-    const users = await userRepository.find({relations:['role']})
+    const users = await userRepository.find({ relations: ['role'] })
 
     res.json({
         data: users
@@ -66,7 +63,7 @@ router.get('/:id', async (req, res) => {
         where: {
             id: parseInt(id)
         },
-        relations:['role']
+        relations: ['role']
     })
 
     if (!user) {
@@ -84,45 +81,22 @@ router.get('/:id', async (req, res) => {
         })
 })
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const id = req.params.id
 
-    const {
-        name, username, email, password, role } = req.body
+    const {name, username, email, password, role } = req.body
 
-        const userIndex = users.findIndex(u => u.id === parseInt(id))
+    const userRepository = AppDataSource.getRepository(User)
+    const roleRepository = AppDataSource.getRepository(Role)
 
-        if (userIndex == -1) {
-            return res.status(404).json({
-                error: {
-                    status: 404,
-                    name: 'Not Found',
-                    message: 'User not found'
-                }
-            })
-        }
+    const user = await userRepository.findOne({
+        where: {
+            id: parseInt(id)
+        },
+        relations: ['role']
+    })
 
-        const updatedUser={
-            id:parseInt(id),
-            name: name || users[userIndex].name,
-            username: username || users[userIndex].username,
-            password: password || users[userIndex].password,
-            email: email || users[userIndex].email,
-            role: role || users[userIndex].role,
-        }
-
-        users[userIndex] = updatedUser
-        res.status(200).json({
-            data:updatedUser
-        })
-
-})
-
-router.delete('/:id', (req, res) => {
-    const id = req.params.id
-    const userIndex = users.findIndex(u => u.id === parseInt(id))
-
-    if (userIndex == -1) {
+    if (!user) {
         return res.status(404).json({
             error: {
                 status: 404,
@@ -131,10 +105,51 @@ router.delete('/:id', (req, res) => {
             }
         })
     }
-    
-    const deletedUser=users.splice(userIndex, 1)
+
+    let roleInDB = await roleRepository.findOne({ where: { name: role } })
+
+    if (!roleInDB) {
+        roleInDB = roleRepository.create({ name: role })
+        await roleRepository.save(roleInDB)
+    }
+
+    user.name = name || user.name,
+        user.username = username || user.username,
+        user.email = email || user.email,
+        user.password = password || user.password,
+        user.role = roleInDB
+
+
+    userRepository.save(user)
     res.status(200).json({
-        data:deletedUser
+        data: user
+    })
+
+})
+
+router.delete('/:id',async (req, res) => {
+    const id = req.params.id
+    const userRepository = AppDataSource.getRepository(User)
+    const user = await userRepository.findOne({
+        where: {
+            id: parseInt(id)
+        },
+        relations: ['role']
+    })
+
+    if (!user) {
+        return res.status(404).json({
+            error: {
+                status: 404,
+                name: 'Not Found',
+                message: 'User not found'
+            }
+        })
+    }
+
+    userRepository.remove(user)
+    res.status(200).json({
+        data: user
     })
 
 })
