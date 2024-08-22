@@ -2,10 +2,12 @@ import { Router } from "express";
 import { AppDataSource } from "../DataSource";
 import { User } from '../entity/User'
 import { Role } from "../entity/Role";
-
+import { authenticateJWT } from "../middleware/authMiddleware";
+import bcrypt from 'bcryptjs'
 
 
 const router = Router()
+router.use(authenticateJWT)
 
 
 router.post('/', async (req, res) => {
@@ -33,11 +35,13 @@ router.post('/', async (req, res) => {
         await roleRepository.save(roleInDB)
     }
 
+    const hashedPassword = bcrypt.hashSync(password, 10)
+
     const newUser: User = userRepository.create({
         name,
         username,
         email,
-        password,
+        password:hashedPassword,
         role: roleInDB
     })
 
