@@ -1,12 +1,17 @@
 import { Router } from "express";
+import { AppDataSource } from "../DataSource";
 import{User} from '../entity/User'
+import { Role } from "../entity/Role";
+
+
+
 const router = Router()
 
 
 
 const users: User[] = []
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
 
     const {
         name, username, email, password, role } = req.body
@@ -21,30 +26,48 @@ router.post('/', (req, res) => {
         })
     }
 
-    const newUser: User = {
-        id: users.length + 1,
+    const userRepository=AppDataSource.getRepository(User)
+    const roleRepository = AppDataSource.getRepository(Role)
+
+    let roleInDB = await roleRepository.findOne({where: {name:role}})
+
+    if (!roleInDB) {
+        roleInDB = roleRepository.create({name:role})
+        await roleRepository.save(roleInDB)
+    }
+
+    const newUser: User = userRepository.create( {
         name,
         username,
         email,
         password,
-        role
-    }
+        role:roleInDB
+    })
 
-    users.push(newUser)
+    await userRepository.save(newUser)
     res.status(201).json({
         data: newUser
     })
 })
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+    const userRepository = AppDataSource.getRepository(User)
+    const users = await userRepository.find({relations:['role']})
+
     res.json({
         data: users
     })
 })
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const id = req.params.id
-    const user = users.find(u => u.id === parseInt(id))
+    const userRepository = AppDataSource.getRepository(User)
+    const user = await userRepository.findOne({
+        where: {
+            id: parseInt(id)
+        },
+        relations:['role']
+    })
 
     if (!user) {
         return res.status(404).json({
