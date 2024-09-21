@@ -186,7 +186,7 @@ router.put('/:id', async (req, res) => {
 });
 
 
-
+//gambiarra - ajustar para final
 
 router.post('/:classId/students/:userId', async (req, res) => {
   try {
