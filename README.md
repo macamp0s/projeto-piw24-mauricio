@@ -65,19 +65,19 @@ Express, Sqlite, TypeORM
 
 ## :neckbeard: Rotas da API REST utilizadas
 
-| Método HTTP | URL |
-| --- | --- |
-| GET | /users/|
-| POST | /users/|
-| GET | /users/:id|
-| PUT | /users/:id|
-| DELETE | /users/:id|
-
-| GET | /subjects/|
-| POST | /subjects/|
-| GET | /subjects/:id|
-| PUT | /subjects/:id|
-| DELETE | /subjects/:id|
-
-| POST | /notices/:subjectId|
-| DELETE | /notices/:id|
+| Método HTTP | URL                  |
+|-------------|----------------------|
+| GET         | /users/              |
+| POST        | /users/              |
+| GET         | /users/:id           |
+| PUT         | /users/:id           |
+| DELETE      | /users/:id           |
+|             |                      |
+| GET         | /subjects/           |
+| POST        | /subjects/           |
+| GET         | /subjects/:id        |
+| PUT         | /subjects/:id        |
+| DELETE      | /subjects/:id        |
+|             |                      |
+| POST        | /notices/:subjectId  |
+| DELETE      | /notices/:id         |
