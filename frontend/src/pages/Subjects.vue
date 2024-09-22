@@ -2,32 +2,51 @@
 import { ref, onMounted, computed } from 'vue';
 import { api } from '@/api';
 import { useUserStore } from '@/stores/userStore';
-import type { ApplicationError, Subject, User } from '@/types';
+import type { ApplicationError, Subject, User, Notice } from '@/types';
 import { isAxiosError } from 'axios';
 import { isApplicationError } from '@/composables/useApplicationError';
 
 const subjects = ref<Subject[]>([]);
 const users = ref<User[]>([]);
+const notices = ref<Notice[]>
 const selectedUsers = ref<number[]>([]);
 const loading = ref(true);
 const exception = ref<ApplicationError | null>(null);
 const success = ref(false);
 
 const showAddUsersModal = ref(false);
+const showAddNoticesModal = ref(false);
 const selectedSubject = ref<Subject | null>(null);
 const deleteRequested = ref(false);
 const subjectToRemove = ref<Subject | null>(null);
 
 const userStore = useUserStore();
 const isAdmin = computed(() => userStore.role === 'admin');
+const isProfessor = computed(() => userStore.role === 'professor');
+
+const notice = ref({
+  title: '',
+  content: ''
+} as Notice);
 
 function openAddUsersModal(subject: Subject) {
   selectedSubject.value = subject;
   showAddUsersModal.value = true;
 }
 
+function openAddNoticesModal(subject: Subject) {
+  selectedSubject.value = subject;
+  showAddNoticesModal.value = true;
+}
+
 function closeAddUsersModal() {
   showAddUsersModal.value = false;
+  selectedSubject.value = null;
+  selectedUsers.value = [];
+}
+
+function closeAddNoticesModal() {
+  showAddNoticesModal.value = false;
   selectedSubject.value = null;
   selectedUsers.value = [];
 }
@@ -91,6 +110,31 @@ async function addUsersToSubject(subjectId: number) {
   } catch (error) {
     console.error('Error adding users:', error);
     alert('Erro ao add participantes da turma.');
+  }
+}
+
+async function addNoticeToSubject(subjectId: number) {
+  try {
+    if (!notice.value.title || !notice.value.content) {
+      alert('Preencha todos os campos.');
+      return;
+    }
+
+    await api.post(`notices/${subjectId}`, {
+      title: notice.value.title,
+      content: notice.value.content,
+    }, {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`,
+      },
+    });
+
+    alert('Aviso adicionado com sucesso!');
+    await loadSubjects();
+    closeAddNoticesModal();
+  } catch (error) {
+    console.error('Erro ao adicionar aviso:', error);
+    alert('Erro ao adicionar aviso.');
   }
 }
 
@@ -170,6 +214,7 @@ onMounted(() => {
         </td>
         <td>
           <button v-if="isAdmin" @click="openAddUsersModal(subject)" class="btn btn-sm btn-primary">Add Usuários</button>
+          <button v-if="isProfessor" @click="openAddNoticesModal(subject)" class="btn btn-sm btn-primary">Add Aviso</button>
           <RouterLink class="btn btn-sm btn-info" :to="`/subjects/${subject.id}`"><i class="bi bi-eye"></i></RouterLink>
           <button v-if="isAdmin" @click="askToDelete(subject.id)" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
         </td>
@@ -200,6 +245,29 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+  <div v-if="showAddNoticesModal" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Notices to {{ selectedSubject?.subjectName }}</h5>
+        <button type="button" class="btn-close" @click="closeAddNoticesModal"></button>
+      </div>
+      <div class="modal-body">
+        <label for="noticeTitle">Insira um Título para o Aviso:</label>
+        <input type="text" id="noticeTitle" v-model="notice.title" class="form-control" placeholder="Título do aviso" />
+
+        <label for="noticeContent" class="mt-3">Insira o Aviso:</label>
+        <textarea id="noticeContent" v-model="notice.content" class="form-control" rows="4" placeholder="Conteúdo do aviso"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="closeAddNoticesModal">Fechar</button>
+        <button type="button" class="btn btn-primary" @click="addNoticeToSubject(selectedSubject?.id || 0)">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <div class="modal" tabindex="-1" v-if="deleteRequested">
     <div class="modal-dialog">
