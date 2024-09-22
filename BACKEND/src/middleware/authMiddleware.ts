@@ -51,3 +51,23 @@ export function authorizeAdmin(req: Request, res: Response, next: NextFunction) 
 
   next();
 }
+
+export function authorizeProfessor(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({
+      status: 401,
+      name: 'Authorization Error',
+      message: 'No token found',
+    });
+  }
+
+  if (!req.user.userRole || req.user.userRole.name !== 'professor') {
+    return res.status(403).json({
+      status: 403,
+      name: 'Forbidden Error',
+      message: 'Professors only route.',
+    });
+  }
+
+  next();
+}

@@ -2,13 +2,13 @@ import { Router } from 'express'
 import { AppDataSource } from '../DataSource'
 import { Subject } from '../entity/Subject'
 import { Notice } from '../entity/Notice'
-import { authenticateJWT } from '../middleware/authMiddleware'
+import { authenticateJWT, authorizeProfessor } from '../middleware/authMiddleware'
 
 const router = Router()
 
 router.use(authenticateJWT)
 
-router.post('/:subjectId', async (req, res) => {
+router.post('/:subjectId', authorizeProfessor, async (req, res) => {
     const { subjectId } = req.params;
     const { title, content } = req.body;
   
