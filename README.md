@@ -23,7 +23,7 @@ Maurício Campos de Sousa - 470385 - Design Digital.
 
 ## :triangular_flag_on_post:	 Principais funcionalidades da aplicação
 
-Matrícula em disciplinas - 
+Gerenciamento de Usuários e matrícula em disciplinas - 
 
     Administrador poderá cadastrar, visualizar, atualizar e deletar usuários - alunos e professores.
     Administrador poderá cadastrar, visualizar, atualizar e deletar disciplinas.
