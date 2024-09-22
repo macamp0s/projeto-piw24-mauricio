@@ -64,6 +64,11 @@ async function loadUsers() {
   }
 }
 
+const filteredUsers = computed(() => {
+  return users.value.filter(user => 
+    user.role.name === 'student' || user.role.name === 'professor'
+  );
+});
 async function loadSubjects() {
   try {
     const res = await api.get('/subjects', {
@@ -230,9 +235,9 @@ onMounted(() => {
           <button type="button" class="btn-close" @click="closeAddUsersModal"></button>
         </div>
         <div class="modal-body">
-          <label>Select Users:</label>
+          <label>Selecione participantes da turma:</label>
           <div class="user-list">
-            <div v-for="user in users" :key="user.id" class="form-check">
+            <div v-for="user in filteredUsers" :key="user.id" class="form-check">
               <input class="form-check-input" type="checkbox" :value="user.id" v-model="selectedUsers" :id="`user-${user.id}`">
               <label class="form-check-label" :for="`user-${user.id}`">{{ user.name }}</label>
             </div>
