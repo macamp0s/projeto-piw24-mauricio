@@ -81,3 +81,5 @@ Express, Sqlite, TypeORM
 |             |                      |
 | POST        | /notices/:subjectId  |
 | DELETE      | /notices/:id         |
+|             |                      |
+| POST        | /subjects/:classId/students|
