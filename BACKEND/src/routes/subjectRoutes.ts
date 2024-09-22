@@ -186,37 +186,42 @@ router.put('/:id', async (req, res) => {
 });
 
 
-//gambiarra - ajustar para final
-
-router.post('/:classId/students/:userId', async (req, res) => {
+router.post('/:classId/students', async (req, res) => {
   try {
-    const { classId, userId } = req.params;
+    const { classId } = req.params;
+    const { userIds } = req.body; 
 
-    // Get repositories
     const userRepository = AppDataSource.getRepository(User);
     const classRepository = AppDataSource.getRepository(Subject);
 
-    // Find user and class
-    const user = await userRepository.findOne({ where: { id: parseInt(userId) }, relations: ['subject'] });
-    const subjectEntity = await classRepository.findOne({ where: { id: parseInt(classId) } });
+    const subjectEntity = await classRepository.findOne({
+      where: { id: parseInt(classId) },
+    });
 
-    // Check if user and class exist
-    if (!user || !subjectEntity) {
-      return res.status(404).json({ message: "User or class not found" });
+    if (!subjectEntity) {
+      return res.status(404).json({ message: 'Class not found' });
     }
 
- 
-    // Assign the class to the user
-    if (!user.subject.some(cls => cls.id === subjectEntity.id)) {
-      user.subject.push(subjectEntity);
-      await userRepository.save(user);
-  }
+    for (const userId of userIds) {
+      const user = await userRepository.findOne({
+        where: { id: parseInt(userId) },
+        relations: ['subject'],
+      });
 
-    // Return success response
-    res.status(200).json({ message: "Student added to class successfully!" });
+      if (!user) {
+        return res.status(404).json({ message: `User with ID ${userId} not found` });
+      }
+
+      if (!user.subject.some(cls => cls.id === subjectEntity.id)) {
+        user.subject.push(subjectEntity);
+        await userRepository.save(user);
+      }
+    }
+
+    res.status(200).json({ message: 'Students added to class successfully!' });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: 'Error adding student to class' });
+    res.status(400).json({ message: 'Error adding students to class' });
   }
 });
 

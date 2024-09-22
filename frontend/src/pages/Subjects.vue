@@ -1,73 +1,136 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/api'
-import type { ApplicationError, Subject } from '@/types'
-import { useUserStore } from '@/stores/userStore'
-import { isAxiosError } from 'axios'
-import { isApplicationError } from '@/composables/useApplicationError'
+import { ref, onMounted, computed } from 'vue';
+import { api } from '@/api';
+import { useUserStore } from '@/stores/userStore';
+import type { ApplicationError, Subject, User } from '@/types';
+import { isAxiosError } from 'axios';
+import { isApplicationError } from '@/composables/useApplicationError';
 
-const subjects = ref([] as Subject[])  
-const exception = ref<ApplicationError>()
-const loading = ref(true)
-const success = ref(false)
+const subjects = ref<Subject[]>([]);
+const users = ref<User[]>([]);
+const selectedUsers = ref<number[]>([]);
+const loading = ref(true);
+const exception = ref<ApplicationError | null>(null);
+const success = ref(false);
 
-const deleteRequested = ref(false)
-const subjectToRemove = ref<Subject>()
+const showAddUsersModal = ref(false);
+const selectedSubject = ref<Subject | null>(null);
+const deleteRequested = ref(false);
+const subjectToRemove = ref<Subject | null>(null);
 
-const userStore = useUserStore()
+const userStore = useUserStore();
+const isAdmin = computed(() => userStore.role === 'admin');
+
+function openAddUsersModal(subject: Subject) {
+  selectedSubject.value = subject;
+  showAddUsersModal.value = true;
+}
+
+function closeAddUsersModal() {
+  showAddUsersModal.value = false;
+  selectedSubject.value = null;
+  selectedUsers.value = [];
+}
+
+async function loadUsers() {
+  try {
+    const res = await api.get('/users', {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`,
+      },
+    });
+    users.value = res.data.data;
+  } catch (error) {
+    exception.value = error as ApplicationError;
+  }
+}
 
 async function loadSubjects() {
   try {
     const res = await api.get('/subjects', {
       headers: {
-        Authorization: `Bearer ${userStore.jwt}`
-      }
-    })
-    subjects.value = res.data.data
-  } catch (e) {
-    exception.value = e as Error
+        Authorization: `Bearer ${userStore.jwt}`,
+      },
+    });
+    subjects.value = res.data.data;
+  } catch (error) {
+    exception.value = error as ApplicationError;
   } finally {
-    loading.value = false
+    loading.value = false;
+  }
+}
+
+const filteredSubjects = computed(() => {
+  if (isAdmin.value) {
+    return subjects.value; 
+  } else if (userStore.role === 'student' || userStore.role === 'professor') {
+    return subjects.value.filter(subject => 
+      subject.students && subject.students.some(student => student.id === userStore.user.id)
+    );
+  }
+  return []; 
+});
+
+
+async function addUsersToSubject(subjectId: number) {
+  try {
+    if (!selectedUsers.value.length) {
+      alert('Selecione ao menos um participante para adicionar.');
+      return;
+    }
+    await api.post(`/subjects/${subjectId}/students`, {
+      userIds: selectedUsers.value,
+    }, {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`,
+      },
+    });
+    alert('Students added successfully!');
+    await loadSubjects();
+    closeAddUsersModal();
+  } catch (error) {
+    console.error('Error adding users:', error);
+    alert('Erro ao add participantes da turma.');
   }
 }
 
 async function removeSubject() {
   try {
-    await api.delete(`/subjects/${subjectToRemove.value?.id}`, {
+    const subject = subjectToRemove.value;
+    if (!subject) return;
+
+    await api.delete(`/subjects/${subject.id}`, {
       headers: {
-        Authorization: `Bearer ${userStore.jwt}`
-      }
-    })
-    const toRemove = subjects.value.findIndex(s => s.id === subjectToRemove.value?.id)
-    subjects.value.splice(toRemove, 1)
-    success.value = true
-  } catch (e) {
-    if (isAxiosError(e) && isApplicationError(e.response?.data)) {
-      exception.value = e.response?.data
+        Authorization: `Bearer ${userStore.jwt}`,
+      },
+    });
+
+    subjects.value = subjects.value.filter(s => s.id !== subject.id);
+    success.value = true;
+  } catch (error) {
+    if (isAxiosError(error) && isApplicationError(error.response?.data)) {
+      exception.value = error.response?.data;
     }
   } finally {
-    toggleModal()
+    deleteRequested.value = false;
   }
 }
 
 function askToDelete(id: number) {
-  const index = subjects.value.findIndex(s => s.id === id)
-  subjectToRemove.value = subjects.value[index]
-  toggleModal()
+  subjectToRemove.value = subjects.value.find(s => s.id === id) || null;
+  deleteRequested.value = true;
 }
 
-function toggleModal() {
-  deleteRequested.value = !deleteRequested.value
-}
-
-onMounted(loadSubjects)
+onMounted(() => {
+  loadSubjects();
+  loadUsers();
+});
 </script>
 
 <template>
   <div v-if="exception" class="alert alert-danger alert-dismissible" role="alert">
     {{ exception.message }}
-    <button @click="exception = undefined" type="button" class="btn-close" aria-label="Close"></button>
+    <button @click="exception = null" type="button" class="btn-close" aria-label="Close"></button>
   </div>
 
   <div v-if="success" class="alert alert-success alert-dismissible" role="alert">
@@ -75,19 +138,13 @@ onMounted(loadSubjects)
     <button @click="success = false" type="button" class="btn-close" aria-label="Close"></button>
   </div>
 
-  <div>
+  <div v-if="isAdmin">
     <RouterLink :to="{ path: '/subjects/new' }">
       <button type="button" class="btn btn-primary">New</button>
     </RouterLink>
   </div>
 
-  <div v-if="loading" class="d-flex justify-content-center">
-    <div class="spinner-grow" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-
-  <table v-else class="table table-striped">
+  <table class="table table-striped">
     <thead>
       <tr>
         <th>Id</th>
@@ -98,43 +155,64 @@ onMounted(loadSubjects)
       </tr>
     </thead>
     <tbody>
-      <tr v-for="subject in subjects" :key="subject.id">
+      <tr v-for="subject in filteredSubjects" :key="subject.id">
         <td>{{ subject.id }}</td>
         <td>{{ subject.subjectName }}</td>
         <td>
           <ul>
-            <li v-for="(student, index) in subject.students" :key="index">
-              {{ student.name }}
-            </li>
+            <li v-for="student in subject.students" :key="student.id">{{ student.name }}</li>
           </ul>
         </td>
         <td>
           <ul>
-            <li v-for="(notice, index) in subject.notices" :key="index">
-              {{ notice.title }}
-            </li>
+            <li v-for="notice in subject.notices" :key="notice.id">{{ notice.title }}</li>
           </ul>
         </td>
         <td>
+          <button v-if="isAdmin" @click="openAddUsersModal(subject)" class="btn btn-sm btn-primary">Add Usuários</button>
           <RouterLink class="btn btn-sm btn-info" :to="`/subjects/${subject.id}`"><i class="bi bi-eye"></i></RouterLink>
-          <button @click="askToDelete(subject.id)" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+          <button v-if="isAdmin" @click="askToDelete(subject.id)" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
         </td>
       </tr>
     </tbody>
   </table>
+
+  <div v-if="showAddUsersModal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Users to {{ selectedSubject?.subjectName }}</h5>
+          <button type="button" class="btn-close" @click="closeAddUsersModal"></button>
+        </div>
+        <div class="modal-body">
+          <label>Select Users:</label>
+          <div class="user-list">
+            <div v-for="user in users" :key="user.id" class="form-check">
+              <input class="form-check-input" type="checkbox" :value="user.id" v-model="selectedUsers" :id="`user-${user.id}`">
+              <label class="form-check-label" :for="`user-${user.id}`">{{ user.name }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" @click="closeAddUsersModal">Fechar</button>
+          <button type="button" class="btn btn-primary" @click="addUsersToSubject(selectedSubject?.id || 0)">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal" tabindex="-1" v-if="deleteRequested">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Remover subject</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" @click="deleteRequested = false"></button>
         </div>
         <div class="modal-body">
-          <p>A disciplina <strong>{{ subjectToRemove?.subjectName }} de id {{ subjectToRemove?.id }}</strong> será removido. Você tem certeza que deseja realizar esta operação?</p>
+          <p>A disciplina <strong>{{ subjectToRemove?.subjectName }}</strong> será removida. Você tem certeza que deseja realizar esta operação?</p>
         </div>
         <div class="modal-footer">
-          <button @click="deleteRequested = false" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+          <button @click="deleteRequested = false" type="button" class="btn btn-secondary">Não</button>
           <button @click="removeSubject" type="button" class="btn btn-primary">Sim</button>
         </div>
       </div>
@@ -148,6 +226,15 @@ onMounted(loadSubjects)
 }
 
 td > .btn {
-  margin: 0px 5px;
+  margin: 0 5px;
+}
+
+.user-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.form-check {
+  margin-bottom: 10px;
 }
 </style>

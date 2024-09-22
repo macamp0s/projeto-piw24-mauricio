@@ -135,7 +135,7 @@ onMounted(async () => {
             </a>
           </div>
           <div class="mb-3">
-            <label for="subjectName" class="form-label">Nome do Subject:</label>
+            <label for="subjectName" class="form-label">Nome da Disciplina:</label>
             <input
               v-model="subject.subjectName"
               type="text"
