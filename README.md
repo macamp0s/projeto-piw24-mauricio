@@ -49,7 +49,7 @@ Vue, VueRouter, Pinia, Axios, Bootstrap
 
 **Backend:**
 
-Express, Sqlite
+Express, Sqlite, TypeORM 
 
 
 ## :shipit: Operações implementadas para cada entidade da aplicação
