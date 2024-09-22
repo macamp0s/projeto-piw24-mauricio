@@ -186,8 +186,7 @@ router.put('/:id',authorizeAdmin, async (req, res) => {
   }
 });
 
-
-router.post('/:classId/students', authorizeAdmin, async (req, res) => {
+router.post('/:classId/students', authorizeAdmin,  async (req, res) => {
   try {
     const { classId } = req.params;
     const { userIds } = req.body; 
