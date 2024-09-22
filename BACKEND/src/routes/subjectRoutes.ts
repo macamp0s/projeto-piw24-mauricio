@@ -1,14 +1,14 @@
 import { Router } from 'express'
 import { AppDataSource } from '../DataSource'
 import { User } from '../entity/User'
-import { Role } from '../entity/Role'
 import { Subject } from '../entity/Subject'
-import { authenticateJWT } from '../middleware/authMiddleware'
-import bcrypt from 'bcryptjs'
+import { authenticateJWT, authorizeAdmin } from '../middleware/authMiddleware'
 
 const router = Router()
 
-router.post('/', async (req, res) => {
+router.use(authenticateJWT)
+
+router.post('/', authorizeAdmin, async (req, res) => {
     const { subjectName } = req.body
   
     if (!subjectName) {
@@ -88,7 +88,7 @@ router.get('/:id', async (req, res) => {
     })
   })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorizeAdmin, async (req, res) => {
     const id  = Number(req.params.id)
     if (isNaN(id)) {
       return res.status(400).json({
@@ -121,7 +121,7 @@ router.delete('/:id', async (req, res) => {
   })
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id',authorizeAdmin, async (req, res) => {
   const id = Number(req.params.id);
 
   
@@ -187,7 +187,7 @@ router.put('/:id', async (req, res) => {
 });
 
 
-router.post('/:classId/students', async (req, res) => {
+router.post('/:classId/students', authorizeAdmin, async (req, res) => {
   try {
     const { classId } = req.params;
     const { userIds } = req.body; 

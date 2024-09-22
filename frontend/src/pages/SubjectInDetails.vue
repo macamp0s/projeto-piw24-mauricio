@@ -150,7 +150,7 @@ onMounted(async () => {
           </div>
 
           <div class="mb-3">
-            <label for="subjectName" class="form-label">Alunos na Disciplina:</label>
+            <label for="subjectName" class="form-label">Participantes da Disciplina:</label>
             <ul class="list-group">
               <li
                 v-for="student in subject.students"

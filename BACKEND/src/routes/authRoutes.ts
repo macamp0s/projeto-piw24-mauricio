@@ -1,4 +1,4 @@
-import { Router } from "express"
+import { Router} from "express";
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { AppDataSource } from "../DataSource"
@@ -51,5 +51,7 @@ router.get('/logout', (req, res) => {
     }
   })
 })
+
+
 
 export default router

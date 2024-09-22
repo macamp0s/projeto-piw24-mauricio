@@ -2,14 +2,14 @@ import { Router } from 'express'
 import { AppDataSource } from '../DataSource'
 import { User } from '../entity/User'
 import { Role } from '../entity/Role'
-import { authenticateJWT } from '../middleware/authMiddleware'
+import { authenticateJWT, authorizeAdmin  } from '../middleware/authMiddleware'
 import bcrypt from 'bcryptjs'
 
 const router = Router()
 
 router.use(authenticateJWT)
 
-router.post('/', async (req, res) => {
+router.post('/', authorizeAdmin, async (req, res) => {
   const { name, username, email, password, role } = req.body
 
   if(!name || !username || !email || !password || !role) {
@@ -25,10 +25,20 @@ router.post('/', async (req, res) => {
   const userRepository = AppDataSource.getRepository(User)
   const roleRepositoy = AppDataSource.getRepository(Role)
 
+  const validRoles = ['admin', 'student', 'professor'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({
+      error: {
+        name: 'Invalid role',
+        message: 'You should select a valid role'
+      }
+    });
+  }
+
   let roleInDB = await roleRepositoy.findOne({ where: { id: role }})
 
-  if(roleInDB) {
-    const hashedPassword = bcrypt.hashSync(password, 10)
+  if (roleInDB) {
+    const hashedPassword = bcrypt.hashSync(password, 10);
   
     const newUser: User = userRepository.create({
       name,
@@ -36,21 +46,20 @@ router.post('/', async (req, res) => {
       email,
       password: hashedPassword,
       role: roleInDB
-    })
-  
-    await userRepository.save(newUser)
+    });
+
+       await userRepository.save(newUser);
     res.status(200).json({
       data: newUser
-    })
+    });
   } else {
     return res.status(400).json({
       error: {
         name: 'Invalid role',
         message: 'You should select a valid role'
       }
-    })
+    });
   }
-
 })
 
 router.get('/', async (req, res) => {
@@ -61,7 +70,7 @@ router.get('/', async (req, res) => {
   })
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', authorizeAdmin, async (req, res) => {
   const id = Number(req.params.id)
   if (isNaN(id)) {
     return res.status(400).json({
@@ -94,7 +103,7 @@ router.get('/:id', async (req, res) => {
   })
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authorizeAdmin, async (req, res) => {
   const id = Number(req.params.id)
   const { name, username, email, password, role } = req.body
 
@@ -149,7 +158,7 @@ router.put('/:id', async (req, res) => {
   }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorizeAdmin, async (req, res) => {
   const id  = Number(req.params.id)
   if (isNaN(id)) {
     return res.status(400).json({
