@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 
 const userStore = useUserStore();
+const userName = userStore.user.name;
 const userRole = computed(() => userStore.role);
 const isAdmin = computed(() => userStore.role === 'admin');
 
@@ -22,8 +23,12 @@ const subjectsButtonText = computed(() => {
 
 <template>
   <div class="row justify-content-center">
+    <h2 class="mb-4 welcome-text  ">Bem-vindo, {{ userName }}!</h2>
     <div class="card">
+    
+
       <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 600px;">
+        
         <RouterLink :to="{ path: '/', query: { role: 'student' } }" class="btn-link">
           <button v-if="isAdmin" type="button" class="btn btn-dark btn-sq me-2">
             GERENCIAR ALUNOS
@@ -57,5 +62,12 @@ const subjectsButtonText = computed(() => {
 .btn-link {
   text-decoration: none; 
   color: inherit; 
+}
+
+.welcome-text {
+  font-size: 24px; 
+  font-weight: bold;
+  color: #1a1a1a; 
+  text-align: center; 
 }
 </style>

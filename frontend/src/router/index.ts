@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter } from 'vue-router'
-import PublicHome from '@/pages/PublicHome.vue'
+import PublicHome from '@/pages/UsersList.vue'
 import UserInDetails from '@/pages/UserInDetails.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import HomePage from '@/pages/HomePage.vue'
