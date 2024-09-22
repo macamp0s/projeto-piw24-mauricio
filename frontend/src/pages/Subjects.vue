@@ -8,7 +8,6 @@ import { isApplicationError } from '@/composables/useApplicationError';
 
 const subjects = ref<Subject[]>([]);
 const users = ref<User[]>([]);
-const notices = ref<Notice[]>
 const selectedUsers = ref<number[]>([]);
 const loading = ref(true);
 const exception = ref<ApplicationError | null>(null);
@@ -23,6 +22,7 @@ const subjectToRemove = ref<Subject | null>(null);
 const userStore = useUserStore();
 const isAdmin = computed(() => userStore.role === 'admin');
 const isProfessor = computed(() => userStore.role === 'professor');
+const isStudent = computed(() => userStore.role === 'student');
 
 const notice = ref({
   title: '',
@@ -199,7 +199,7 @@ onMounted(() => {
         <th>Id</th>
         <th>Nome</th>
         <th>Participantes</th>
-        <th>Avisos</th>
+        <th v-if="isProfessor || isStudent">Avisos</th>
         <th>Ações</th>
       </tr>
     </thead>
@@ -212,8 +212,8 @@ onMounted(() => {
             <li v-for="student in subject.students" :key="student.id">{{ student.name }}</li>
           </ul>
         </td>
-        <td>
-          <ul>
+        <td v-if="isProfessor || isStudent">
+          <ul   >
             <li v-for="notice in subject.notices" :key="notice.id">{{ notice.title }}</li>
           </ul>
         </td>

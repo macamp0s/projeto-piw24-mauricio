@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { api } from '@/api'
@@ -22,6 +22,8 @@ const router = useRouter()
 
 const userStore = useUserStore()
 
+const isAdmin = computed(() => userStore.role === 'admin');
+
 function toggleEdit() {
   editionMode.value = !editionMode.value
 }
@@ -34,6 +36,7 @@ async function loadSubject(id: number) {
       }
     })
     subject.value = res.data.data
+    console.log(subject.value); 
   } catch (e) {
     if (isAxiosError(e) && isApplicationError(e.response?.data)) {
       exception.value = e.response?.data
@@ -55,7 +58,8 @@ async function updateSubject() {
       }
     })
 
-    subject.value = res.data.data
+    subject.value.subjectName = res.data.data.subjectName;
+    
     updated.value = true
   } catch (e) {
     if (isAxiosError(e) && isApplicationError(e.response?.data)) {
@@ -123,7 +127,7 @@ onMounted(async () => {
         <h3 class="card-header text-center">Detalhes da Disciplina</h3>
         <div class="card-body">
           <div class="mb-3">
-            <a v-if="id" @click="toggleEdit" class="btn btn-outline-secondary btn-sm">
+            <a v-if="isAdmin" @click="toggleEdit" class="btn btn-outline-secondary btn-sm">
               <template v-if="editionMode">
                 <i class="bi bi-lock"></i>
                 Desabilitar edição
@@ -143,6 +147,18 @@ onMounted(async () => {
               id="subjectName"
               :disabled="!editionMode"
             />
+          </div>
+
+          <div class="mb-3">
+            <label for="subjectName" class="form-label">Alunos na Disciplina:</label>
+            <ul class="list-group">
+              <li
+                v-for="student in subject.students"
+                :key="student.id"
+                class="list-group-item">
+                {{ student.name }}
+              </li>
+            </ul>
           </div>
         </div>
         <div class="card-footer text-center mt-3">

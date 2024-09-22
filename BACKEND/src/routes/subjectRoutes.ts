@@ -70,7 +70,8 @@ router.get('/:id', async (req, res) => {
     const subjects = await subjectRepository.findOne({
       where: {
         id: id
-      }
+      },
+      relations: ['students']
     })
   
     if (!subjects) {
