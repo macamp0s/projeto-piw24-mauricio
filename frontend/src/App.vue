@@ -89,16 +89,15 @@ const userStore = useUserStore()
       <div class="container">
         <div class="row">
           <div class="col-sm-8 col-md-7 py-4">
-            <h4>About</h4>
+         
             <p class="text-body-secondary">
-              Exemplo de CRUD usando Vue Js com um backend escrito em Node + Express
+              Projeto final para a disciplina de Projeto de Interfaces Web.
             </p>
           </div>
           <div class="col-sm-4 offset-md-1 py-4">
-            <h4>Contact</h4>
+         
             <ul class="list-unstyled">
-              <li><a href="#" class="text-white">Follow on Twitter</a></li>
-              <li><a href="#" class="text-white">Like on Facebook</a></li>
+          
               <template v-if="userStore.username">
                 <li><a href="#" class="text-white">{{ userStore.username }}</a></li>
                 <li><a @click="userStore.logout" href="#" class="text-white">Logout</a></li>
